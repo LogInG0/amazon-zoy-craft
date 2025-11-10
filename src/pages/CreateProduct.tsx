@@ -1,15 +1,17 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
 import { z } from "zod";
+import { Upload } from "lucide-react";
+import { Navbar } from "@/components/Navbar";
 
 const productSchema = z.object({
   title: z.string().min(3, "Название должно быть минимум 3 символа").max(100),
@@ -17,19 +19,20 @@ const productSchema = z.object({
   price: z.number().min(0, "Цена должна быть положительной"),
   category: z.string().min(1, "Выберите категорию"),
   stock: z.number().min(0, "Количество должно быть положительным"),
-  image_url: z.string().url("Неверный URL").optional().or(z.literal("")),
+  image_url: z.string().nullable(),
 });
 
 const CreateProduct = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-  const [category, setCategory] = useState("");
   const [stock, setStock] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+  const [category, setCategory] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -41,8 +44,24 @@ const CreateProduct = () => {
     });
   }, [navigate]);
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Файл слишком большой. Максимум 5MB");
+        return;
+      }
+      setImageFile(file);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!agreedToTerms) {
+      toast.error("Примите правила и оферту");
+      return;
+    }
 
     try {
       const validated = productSchema.parse({
@@ -51,10 +70,29 @@ const CreateProduct = () => {
         price: parseFloat(price),
         category,
         stock: parseInt(stock),
-        image_url: imageUrl,
+        image_url: null,
       });
 
       setLoading(true);
+
+      let imageUrl = null;
+
+      if (imageFile) {
+        const fileExt = imageFile.name.split(".").pop();
+        const fileName = `${user.id}/${Math.random()}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("product-images")
+          .upload(fileName, imageFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from("product-images")
+          .getPublicUrl(fileName);
+
+        imageUrl = publicUrl;
+      }
 
       const { error } = await supabase.from("products").insert({
         seller_id: user.id,
@@ -63,7 +101,8 @@ const CreateProduct = () => {
         price: validated.price,
         category: validated.category,
         stock: validated.stock,
-        image_url: validated.image_url || null,
+        image_url: imageUrl,
+        agreed_to_terms: true,
         is_active: true,
       });
 
@@ -77,6 +116,7 @@ const CreateProduct = () => {
         navigate("/profile");
       }
     } catch (error) {
+      setLoading(false);
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
       }
@@ -89,7 +129,7 @@ const CreateProduct = () => {
 
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
-          <Card className="bg-gradient-card border-border/50">
+          <Card>
             <CardHeader>
               <CardTitle className="text-2xl">Добавить новый товар</CardTitle>
             </CardHeader>
@@ -164,13 +204,47 @@ const CreateProduct = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="image">URL изображения (необязательно)</Label>
-                  <Input
-                    id="image"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    placeholder="https://..."
+                  <Label htmlFor="image">Изображение товара</Label>
+                  <div className="flex items-center gap-4">
+                    <Input
+                      id="image"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
+                    <Label
+                      htmlFor="image"
+                      className="flex items-center gap-2 px-4 py-2 border border-input rounded-md cursor-pointer hover:bg-accent"
+                    >
+                      <Upload className="h-4 w-4" />
+                      Выбрать файл
+                    </Label>
+                    {imageFile && (
+                      <span className="text-sm text-muted-foreground">
+                        {imageFile.name}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-2 pt-4 border-t">
+                  <Checkbox
+                    id="terms"
+                    checked={agreedToTerms}
+                    onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
                   />
+                  <div className="space-y-1 leading-none">
+                    <Label
+                      htmlFor="terms"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Согласен с правилами маркетплейса и офертой
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Вы подтверждаете, что ознакомлены с правилами маркетплейса и договором оферты
+                    </p>
+                  </div>
                 </div>
 
                 <div className="flex gap-4">

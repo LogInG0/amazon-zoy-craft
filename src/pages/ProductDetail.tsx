@@ -6,9 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { StarRating } from "@/components/StarRating";
 import { ReviewCard } from "@/components/ReviewCard";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import FavoriteButton from "@/components/FavoriteButton";
+import ComplaintDialog from "@/components/ComplaintDialog";
 import { toast } from "sonner";
 import { Star } from "lucide-react";
 
@@ -157,8 +160,14 @@ const ProductDetail = () => {
             <div className="space-y-6">
               <div>
                 <Badge className="mb-2">{product.category}</Badge>
-                <h1 className="text-4xl font-bold mb-4">{product.title}</h1>
-                <div className="flex items-center gap-4 mb-4">
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <h1 className="text-3xl font-bold flex-1">{product.title}</h1>
+                  <div className="flex items-center gap-2">
+                    <FavoriteButton productId={product.id} />
+                    <ComplaintDialog productId={product.id} />
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <Star className="w-5 h-5 fill-warning text-warning" />
                     <span className="text-xl font-semibold">
@@ -171,7 +180,7 @@ const ProductDetail = () => {
                 </div>
               </div>
 
-              <div className="text-4xl font-bold text-primary">{product.price} ₽</div>
+              <div className="text-3xl font-bold">{product.price} ₽</div>
 
               <div>
                 <h2 className="font-semibold mb-2">Описание</h2>

@@ -8,6 +8,10 @@ import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import CreateProduct from "./pages/CreateProduct";
 import ProductDetail from "./pages/ProductDetail";
+import Admin from "./pages/Admin";
+import Favorites from "./pages/Favorites";
+import Purchases from "./pages/Purchases";
+import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,7 +28,10 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/create-product" element={<CreateProduct />} />
           <Route path="/product/:id" element={<ProductDetail />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/favorites" element={<Favorites />} />
+          <Route path="/purchases" element={<Purchases />} />
+          <Route path="/notifications" element={<Notifications />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
