@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag, LogOut, Plus, Heart, ShoppingCart, Bell, User as UserIcon, Shield } from "lucide-react";
+import { ShoppingBag, Heart, ShoppingCart, Bell, User as UserIcon, Shield, FileText, ScrollText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -11,16 +11,6 @@ interface NavbarProps {
 
 export const Navbar = ({ user }: NavbarProps) => {
   const navigate = useNavigate();
-
-  const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast.error("Ошибка при выходе");
-    } else {
-      toast.success("Вы вышли из аккаунта");
-      navigate("/auth");
-    }
-  };
 
   return (
     <nav className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
@@ -56,15 +46,21 @@ export const Navbar = ({ user }: NavbarProps) => {
                   </Link>
                 </Button>
                 <Button variant="ghost" size="sm" asChild>
-                  <Link to="/profile">
-                    <UserIcon className="w-4 h-4 mr-1" />
-                    Профиль
+                  <Link to="/rules">
+                    <FileText className="w-4 h-4 mr-1" />
+                    Правила
                   </Link>
                 </Button>
                 <Button variant="ghost" size="sm" asChild>
-                  <Link to="/create-product">
-                    <Plus className="w-4 h-4 mr-1" />
-                    Создать
+                  <Link to="/offer">
+                    <ScrollText className="w-4 h-4 mr-1" />
+                    Оферта
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/profile">
+                    <UserIcon className="w-4 h-4 mr-1" />
+                    Профиль
                   </Link>
                 </Button>
                 <Button variant="ghost" size="sm" asChild>
@@ -72,10 +68,6 @@ export const Navbar = ({ user }: NavbarProps) => {
                     <Shield className="w-4 h-4 mr-1" />
                     Админ
                   </Link>
-                </Button>
-                <Button variant="ghost" size="sm" onClick={handleLogout}>
-                  <LogOut className="w-4 h-4 mr-1" />
-                  Выйти
                 </Button>
               </>
             ) : (

@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Trash2, CheckCircle, XCircle } from "lucide-react";
+import { Trash2, CheckCircle, XCircle, Ban, Clock } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 type UserRole = {
   id: string;
@@ -31,12 +33,28 @@ type Complaint = {
   };
 };
 
+type Ban = {
+  id: string;
+  user_id: string;
+  reason: string;
+  banned_until: string | null;
+  is_permanent: boolean;
+  created_at: string;
+  profiles: {
+    username: string;
+  };
+};
+
 export default function Admin() {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<UserRole[]>([]);
   const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [bans, setBans] = useState<Ban[]>([]);
+  const [banUserId, setBanUserId] = useState("");
+  const [banReason, setBanReason] = useState("");
+  const [banDuration, setBanDuration] = useState("permanent");
 
   useEffect(() => {
     checkAdmin();
@@ -98,8 +116,32 @@ export default function Admin() {
       });
     }
 
+    const { data: bansData } = await supabase
+      .from("bans")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    // Fetch usernames for bans separately
+    const enrichedBans: Ban[] = [];
+    if (bansData) {
+      const banUserIds = bansData.map(b => b.user_id);
+      const { data: banProfilesData } = await supabase
+        .from("profiles")
+        .select("id, username")
+        .in("id", banUserIds);
+      
+      const banProfilesMap = new Map(banProfilesData?.map(p => [p.id, p]) || []);
+      bansData.forEach((ban: any) => {
+        enrichedBans.push({
+          ...ban,
+          profiles: banProfilesMap.get(ban.user_id) || { username: "Unknown" },
+        });
+      });
+    }
+
     setUsers(usersData || []);
     setComplaints(enrichedComplaints);
+    setBans(enrichedBans);
     setLoading(false);
   };
 
@@ -133,6 +175,56 @@ export default function Admin() {
     loadData();
   };
 
+  const handleBanUser = async () => {
+    if (!banUserId || !banReason) {
+      toast.error("Заполните все поля");
+      return;
+    }
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    let bannedUntil = null;
+    if (banDuration !== "permanent") {
+      const hours = parseInt(banDuration);
+      bannedUntil = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
+    }
+
+    const { error } = await supabase.from("bans").insert({
+      user_id: banUserId,
+      banned_by: session.user.id,
+      reason: banReason,
+      banned_until: bannedUntil,
+      is_permanent: banDuration === "permanent",
+    });
+
+    if (error) {
+      toast.error("Ошибка при создании бана");
+      return;
+    }
+
+    toast.success("Пользователь заблокирован");
+    setBanUserId("");
+    setBanReason("");
+    setBanDuration("permanent");
+    loadData();
+  };
+
+  const handleUnbanUser = async (banId: string) => {
+    const { error } = await supabase
+      .from("bans")
+      .delete()
+      .eq("id", banId);
+
+    if (error) {
+      toast.error("Ошибка при разблокировке");
+      return;
+    }
+
+    toast.success("Пользователь разблокирован");
+    loadData();
+  };
+
   if (!isAdmin) return null;
 
   return (
@@ -143,6 +235,7 @@ export default function Admin() {
         <TabsList>
           <TabsTrigger value="users">Пользователи</TabsTrigger>
           <TabsTrigger value="complaints">Жалобы</TabsTrigger>
+          <TabsTrigger value="bans">Баны</TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="space-y-4">
@@ -205,6 +298,88 @@ export default function Admin() {
                       </>
                     )}
                   </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </TabsContent>
+
+        <TabsContent value="bans" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Заблокировать пользователя</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>ID пользователя</Label>
+                <Input
+                  value={banUserId}
+                  onChange={(e) => setBanUserId(e.target.value)}
+                  placeholder="UUID пользователя"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Причина бана</Label>
+                <Input
+                  value={banReason}
+                  onChange={(e) => setBanReason(e.target.value)}
+                  placeholder="Опишите причину..."
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Длительность</Label>
+                <select
+                  className="w-full p-2 border rounded-md bg-background"
+                  value={banDuration}
+                  onChange={(e) => setBanDuration(e.target.value)}
+                >
+                  <option value="permanent">Навсегда</option>
+                  <option value="1">1 час</option>
+                  <option value="24">24 часа</option>
+                  <option value="168">7 дней</option>
+                  <option value="720">30 дней</option>
+                </select>
+              </div>
+              <Button onClick={handleBanUser}>
+                <Ban className="h-4 w-4 mr-2" />
+                Заблокировать
+              </Button>
+            </CardContent>
+          </Card>
+
+          {loading ? (
+            <p>Загрузка...</p>
+          ) : (
+            bans.map((ban) => (
+              <Card key={ban.id}>
+                <CardHeader>
+                  <CardTitle className="text-lg">{ban.profiles?.username}</CardTitle>
+                  <CardDescription>
+                    ID: {ban.user_id} • {new Date(ban.created_at).toLocaleDateString()}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <p className="font-semibold">Причина: {ban.reason}</p>
+                    {ban.is_permanent ? (
+                      <Badge variant="destructive" className="mt-2">
+                        <Ban className="h-3 w-3 mr-1" />
+                        Постоянный бан
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="mt-2">
+                        <Clock className="h-3 w-3 mr-1" />
+                        До: {ban.banned_until ? new Date(ban.banned_until).toLocaleString() : "N/A"}
+                      </Badge>
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleUnbanUser(ban.id)}
+                  >
+                    Разблокировать
+                  </Button>
                 </CardContent>
               </Card>
             ))

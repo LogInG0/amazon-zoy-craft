@@ -9,6 +9,8 @@ import Profile from "./pages/Profile";
 import CreateProduct from "./pages/CreateProduct";
 import ProductDetail from "./pages/ProductDetail";
 import Admin from "./pages/Admin";
+import Rules from "./pages/Rules";
+import Offer from "./pages/Offer";
 import Favorites from "./pages/Favorites";
 import Purchases from "./pages/Purchases";
 import Notifications from "./pages/Notifications";
@@ -29,6 +31,8 @@ const App = () => (
           <Route path="/create-product" element={<CreateProduct />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/rules" element={<Rules />} />
+          <Route path="/offer" element={<Offer />} />
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/purchases" element={<Purchases />} />
           <Route path="/notifications" element={<Notifications />} />

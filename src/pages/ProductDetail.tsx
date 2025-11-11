@@ -87,6 +87,11 @@ const ProductDetail = () => {
       return;
     }
 
+    if (product.seller_id === user.id) {
+      toast.error("Вы не можете оставить отзыв на свой собственный товар");
+      return;
+    }
+
     if (rating === 0) {
       toast.error("Пожалуйста, выберите рейтинг");
       return;
@@ -180,7 +185,7 @@ const ProductDetail = () => {
                 </div>
               </div>
 
-              <div className="text-3xl font-bold">{product.price} ₽</div>
+              <div className="text-3xl font-bold">{product.price} Q</div>
 
               <div>
                 <h2 className="font-semibold mb-2">Описание</h2>

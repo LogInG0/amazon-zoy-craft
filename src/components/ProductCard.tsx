@@ -62,7 +62,7 @@ export const ProductCard = ({
         </div>
       </CardContent>
       <CardFooter className="p-4 pt-0">
-        <div className="text-xl font-bold">{price} ₽</div>
+        <div className="text-xl font-bold">{price} Q</div>
       </CardFooter>
     </Card>
   );

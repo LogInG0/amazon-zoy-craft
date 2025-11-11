@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      bans: {
+        Row: {
+          banned_by: string
+          banned_until: string | null
+          created_at: string
+          id: string
+          is_permanent: boolean
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          banned_by: string
+          banned_until?: string | null
+          created_at?: string
+          id?: string
+          is_permanent?: boolean
+          reason: string
+          user_id: string
+        }
+        Update: {
+          banned_by?: string
+          banned_until?: string | null
+          created_at?: string
+          id?: string
+          is_permanent?: boolean
+          reason?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       complaints: {
         Row: {
           created_at: string
@@ -318,6 +348,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_user_banned: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

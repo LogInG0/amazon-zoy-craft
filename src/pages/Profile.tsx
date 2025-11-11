@@ -105,6 +105,53 @@ const Profile = () => {
     }
   };
 
+  const handleChangePassword = async () => {
+    const newPassword = prompt("Введите новый пароль (минимум 6 символов):");
+    if (!newPassword || newPassword.length < 6) {
+      toast.error("Пароль должен быть минимум 6 символов");
+      return;
+    }
+
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (error) {
+      toast.error("Ошибка при смене пароля");
+    } else {
+      toast.success("Пароль успешно изменен!");
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirmed = confirm(
+      "Вы уверены, что хотите удалить свой аккаунт? Это действие необратимо!"
+    );
+    if (!confirmed) return;
+
+    // Delete user's data first
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .delete()
+      .eq("id", user.id);
+
+    if (profileError) {
+      toast.error("Ошибка при удалении аккаунта");
+      return;
+    }
+
+    // Sign out
+    await supabase.auth.signOut();
+    toast.success("Аккаунт удален");
+    navigate("/auth");
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast.success("Вы вышли из аккаунта");
+    navigate("/auth");
+  };
+
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
       case "admin":
@@ -213,10 +260,28 @@ const Profile = () => {
                       />
                     </div>
 
-                    <Button type="submit" disabled={loading}>
-                      Сохранить изменения
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button type="submit" disabled={loading}>
+                        Сохранить изменения
+                      </Button>
+                      <Button type="button" variant="outline" onClick={() => navigate("/create-product")}>
+                        Создать товар
+                      </Button>
+                    </div>
                   </form>
+
+                  <div className="border-t pt-6 mt-6 space-y-3">
+                    <h3 className="font-semibold mb-4">Управление аккаунтом</h3>
+                    <Button variant="outline" onClick={handleChangePassword} className="w-full">
+                      Сменить пароль
+                    </Button>
+                    <Button variant="outline" onClick={handleLogout} className="w-full">
+                      Выйти из аккаунта
+                    </Button>
+                    <Button variant="destructive" onClick={handleDeleteAccount} className="w-full">
+                      Удалить аккаунт
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
 

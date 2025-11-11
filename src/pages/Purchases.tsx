@@ -62,7 +62,7 @@ export default function Purchases() {
               <CardHeader>
                 <CardTitle className="text-lg">{purchase.products.title}</CardTitle>
                 <CardDescription>
-                  {new Date(purchase.created_at).toLocaleDateString()} • {purchase.price} ₽
+                  {new Date(purchase.created_at).toLocaleDateString()} • {purchase.price} Q
                 </CardDescription>
               </CardHeader>
               <CardContent>

@@ -160,7 +160,7 @@ const CreateProduct = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="price">Цена (₽)</Label>
+                    <Label htmlFor="price">Цена (Q)</Label>
                     <Input
                       id="price"
                       type="number"
