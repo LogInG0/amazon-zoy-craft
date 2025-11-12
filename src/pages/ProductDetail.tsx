@@ -128,6 +128,50 @@ const ProductDetail = () => {
     return sum / reviews.length;
   };
 
+  const handleBuyClick = async () => {
+    if (!user) {
+      toast.error("Войдите, чтобы купить товар");
+      navigate("/auth");
+      return;
+    }
+
+    if (product.seller_id === user.id) {
+      toast.error("Вы не можете купить свой собственный товар");
+      return;
+    }
+
+    // Check if chat already exists
+    const { data: existingChat } = await supabase
+      .from("chats")
+      .select("id")
+      .eq("product_id", product.id)
+      .eq("buyer_id", user.id)
+      .maybeSingle();
+
+    if (existingChat) {
+      navigate(`/chat/${existingChat.id}`);
+      return;
+    }
+
+    // Create new chat
+    const { data: newChat, error } = await supabase
+      .from("chats")
+      .insert({
+        product_id: product.id,
+        buyer_id: user.id,
+        seller_id: product.seller_id,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      toast.error("Ошибка создания чата");
+      console.error(error);
+    } else {
+      navigate(`/chat/${newChat.id}`);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -217,11 +261,31 @@ const ProductDetail = () => {
                 </CardContent>
               </Card>
 
-              <div className="bg-muted/30 p-4 rounded-lg">
-                <p className="text-sm text-muted-foreground">
-                  💡 Оплата происходит на сервере после покупки
-                </p>
-              </div>
+              {user && user.id !== product.seller_id && (
+                <Button
+                  size="lg"
+                  className="w-full"
+                  onClick={handleBuyClick}
+                >
+                  Купить товар
+                </Button>
+              )}
+
+              {user && user.id === product.seller_id && (
+                <div className="bg-muted/30 p-4 rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    Это ваш товар
+                  </p>
+                </div>
+              )}
+
+              {!user && (
+                <div className="bg-muted/30 p-4 rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    Войдите, чтобы купить товар
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 

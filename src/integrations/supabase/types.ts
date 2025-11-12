@@ -44,6 +44,41 @@ export type Database = {
         }
         Relationships: []
       }
+      chats: {
+        Row: {
+          buyer_id: string
+          created_at: string
+          id: string
+          product_id: string
+          seller_id: string
+          updated_at: string
+        }
+        Insert: {
+          buyer_id: string
+          created_at?: string
+          id?: string
+          product_id: string
+          seller_id: string
+          updated_at?: string
+        }
+        Update: {
+          buyer_id?: string
+          created_at?: string
+          id?: string
+          product_id?: string
+          seller_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chats_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       complaints: {
         Row: {
           created_at: string
@@ -114,6 +149,38 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          chat_id: string
+          content: string
+          created_at: string
+          id: string
+          sender_id: string
+        }
+        Insert: {
+          chat_id: string
+          content: string
+          created_at?: string
+          id?: string
+          sender_id: string
+        }
+        Update: {
+          chat_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -143,6 +210,78 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      orders: {
+        Row: {
+          buyer_confirmed: boolean
+          buyer_id: string
+          chat_id: string
+          created_at: string
+          delivery_address: string | null
+          delivery_cost: number
+          delivery_type: string
+          id: string
+          order_number: string
+          price: number
+          product_id: string
+          seller_confirmed: boolean
+          seller_id: string
+          status: string
+          total_price: number
+          updated_at: string
+        }
+        Insert: {
+          buyer_confirmed?: boolean
+          buyer_id: string
+          chat_id: string
+          created_at?: string
+          delivery_address?: string | null
+          delivery_cost?: number
+          delivery_type: string
+          id?: string
+          order_number: string
+          price: number
+          product_id: string
+          seller_confirmed?: boolean
+          seller_id: string
+          status?: string
+          total_price: number
+          updated_at?: string
+        }
+        Update: {
+          buyer_confirmed?: boolean
+          buyer_id?: string
+          chat_id?: string
+          created_at?: string
+          delivery_address?: string | null
+          delivery_cost?: number
+          delivery_type?: string
+          id?: string
+          order_number?: string
+          price?: number
+          product_id?: string
+          seller_confirmed?: boolean
+          seller_id?: string
+          status?: string
+          total_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       products: {
         Row: {
@@ -341,6 +480,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_order_number: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

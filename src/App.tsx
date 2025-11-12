@@ -14,6 +14,8 @@ import Offer from "./pages/Offer";
 import Favorites from "./pages/Favorites";
 import Purchases from "./pages/Purchases";
 import Notifications from "./pages/Notifications";
+import Chat from "./pages/Chat";
+import Orders from "./pages/Orders";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,7 +37,9 @@ const App = () => (
           <Route path="/offer" element={<Offer />} />
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/purchases" element={<Purchases />} />
+          <Route path="/orders" element={<Orders />} />
           <Route path="/notifications" element={<Notifications />} />
+          <Route path="/chat/:id" element={<Chat />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

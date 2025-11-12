@@ -40,6 +40,12 @@ export const Navbar = ({ user }: NavbarProps) => {
                   </Link>
                 </Button>
                 <Button variant="ghost" size="sm" asChild>
+                  <Link to="/orders">
+                    <ShoppingCart className="w-4 h-4 mr-1" />
+                    Заказы
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="sm" asChild>
                   <Link to="/notifications">
                     <Bell className="w-4 h-4 mr-1" />
                     Уведомления
