@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Navbar } from "@/components/Navbar";
 
 type Purchase = {
   id: string;
@@ -17,6 +18,7 @@ type Purchase = {
 
 export default function Purchases() {
   const navigate = useNavigate();
+  const [user, setUser] = useState<any>(null);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -32,6 +34,7 @@ export default function Purchases() {
       return;
     }
 
+    setUser(session.user);
     loadPurchases();
   };
 
@@ -46,11 +49,18 @@ export default function Purchases() {
   };
 
   if (loading) {
-    return <div className="container mx-auto py-8 px-4">Загрузка...</div>;
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar user={user} />
+        <div className="container mx-auto py-8 px-4">Загрузка...</div>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="min-h-screen bg-background">
+      <Navbar user={user} />
+      <main className="container mx-auto py-8 px-4">
       <h1 className="text-3xl font-bold mb-8">История покупок</h1>
       
       {purchases.length === 0 ? (
@@ -72,6 +82,7 @@ export default function Purchases() {
           ))}
         </div>
       )}
+      </main>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductCard } from "@/components/ProductCard";
+import { Navbar } from "@/components/Navbar";
 
 type Product = {
   id: string;
@@ -20,6 +21,7 @@ type Favorite = {
 
 export default function Favorites() {
   const navigate = useNavigate();
+  const [user, setUser] = useState<any>(null);
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -35,6 +37,7 @@ export default function Favorites() {
       return;
     }
 
+    setUser(session.user);
     loadFavorites();
   };
 
@@ -49,11 +52,18 @@ export default function Favorites() {
   };
 
   if (loading) {
-    return <div className="container mx-auto py-8 px-4">Загрузка...</div>;
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar user={user} />
+        <div className="container mx-auto py-8 px-4">Загрузка...</div>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="min-h-screen bg-background">
+      <Navbar user={user} />
+      <main className="container mx-auto py-8 px-4">
       <h1 className="text-3xl font-bold mb-8">Избранное</h1>
       
       {favorites.length === 0 ? (
@@ -73,6 +83,7 @@ export default function Favorites() {
           ))}
         </div>
       )}
+      </main>
     </div>
   );
 }

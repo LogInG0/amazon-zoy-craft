@@ -15,6 +15,7 @@ import Favorites from "./pages/Favorites";
 import Purchases from "./pages/Purchases";
 import Notifications from "./pages/Notifications";
 import Chat from "./pages/Chat";
+import Chats from "./pages/Chats";
 import Orders from "./pages/Orders";
 import NotFound from "./pages/NotFound";
 
@@ -39,6 +40,7 @@ const App = () => (
           <Route path="/purchases" element={<Purchases />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/notifications" element={<Notifications />} />
+          <Route path="/chats" element={<Chats />} />
           <Route path="/chat/:id" element={<Chat />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
