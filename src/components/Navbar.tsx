@@ -1,22 +1,40 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag, Heart, ShoppingCart, Bell, User as UserIcon, Shield, FileText, ScrollText } from "lucide-react";
+import { ShoppingBag, Heart, ShoppingCart, Bell, User as UserIcon, Shield, FileText, ScrollText, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { useEffect, useState } from "react";
 
 interface NavbarProps {
   user: any;
 }
 
 export const Navbar = ({ user }: NavbarProps) => {
-  const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      checkAdminRole();
+    }
+  }, [user]);
+
+  const checkAdminRole = async () => {
+    if (!user) return;
+    
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .single();
+
+    setIsAdmin(!!data);
+  };
 
   return (
-    <nav className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+    <nav className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50 animate-fade-in">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 text-xl font-bold">
+          <Link to="/" className="flex items-center gap-2 text-xl font-bold hover-scale">
             <ShoppingBag className="w-6 h-6" />
             <span>Amazon Zoy</span>
           </Link>
@@ -26,6 +44,12 @@ export const Navbar = ({ user }: NavbarProps) => {
               <>
                 <Button variant="ghost" size="sm" asChild>
                   <Link to="/">Главная</Link>
+                </Button>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/chats">
+                    <MessageSquare className="w-4 h-4 mr-1" />
+                    Чаты
+                  </Link>
                 </Button>
                 <Button variant="ghost" size="sm" asChild>
                   <Link to="/favorites">
@@ -69,12 +93,14 @@ export const Navbar = ({ user }: NavbarProps) => {
                     Профиль
                   </Link>
                 </Button>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/admin">
-                    <Shield className="w-4 h-4 mr-1" />
-                    Админ
-                  </Link>
-                </Button>
+                {isAdmin && (
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link to="/admin">
+                      <Shield className="w-4 h-4 mr-1" />
+                      Админ
+                    </Link>
+                  </Button>
+                )}
               </>
             ) : (
               <Button asChild>

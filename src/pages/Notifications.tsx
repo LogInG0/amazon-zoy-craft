@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Navbar } from "@/components/Navbar";
 
 type Notification = {
   id: string;
@@ -16,6 +17,7 @@ type Notification = {
 
 export default function Notifications() {
   const navigate = useNavigate();
+  const [user, setUser] = useState<any>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -31,6 +33,7 @@ export default function Notifications() {
       return;
     }
 
+    setUser(session.user);
     loadNotifications();
   };
 
@@ -67,11 +70,18 @@ export default function Notifications() {
   };
 
   if (loading) {
-    return <div className="container mx-auto py-8 px-4">Загрузка...</div>;
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar user={user} />
+        <div className="container mx-auto py-8 px-4">Загрузка...</div>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="min-h-screen bg-background">
+      <Navbar user={user} />
+      <main className="container mx-auto py-8 px-4">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Уведомления</h1>
         {notifications.some(n => !n.read) && (
@@ -110,6 +120,7 @@ export default function Notifications() {
           ))}
         </div>
       )}
+      </main>
     </div>
   );
 }
